@@ -1,7 +1,7 @@
 # apps/donation-service/Dockerfile
 
 # ---- Stage 1: build ----
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25.11-alpine3.22 AS builder
 
 RUN apk add --no-cache git ca-certificates tzdata
 
@@ -18,9 +18,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
     ./main.go
 
 # ---- Stage 2: runtime ----
-FROM alpine:3.19 AS runtime
+FROM alpine:3.22 AS runtime
 
-RUN apk add --no-cache ca-certificates tzdata wget
+RUN apk upgrade --no-cache && apk add --no-cache ca-certificates tzdata wget
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
