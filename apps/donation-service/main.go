@@ -38,16 +38,22 @@ func main() {
 		port = "8082"
 	}
 
+	var db *sql.DB
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		log.Fatal("DATABASE_URL é obrigatória")
+		log.Println("DATABASE_URL não informada; endpoints /donations responderão 503 até o banco estar disponível.")
+	} else {
+		openedDB, err := sql.Open("pgx", dbURL)
+		if err != nil {
+			log.Printf("Erro ao abrir conexão com PostgreSQL: %v", err)
+		} else if err = openedDB.Ping(); err != nil {
+			log.Printf("PostgreSQL indisponível no startup: %v", err)
+			_ = openedDB.Close()
+		} else {
+			db = openedDB
+			log.Println("Conectado ao PostgreSQL (donation-service).")
+		}
 	}
-
-	db, err := sql.Open("pgx", dbURL)
-	if err != nil || db.Ping() != nil {
-		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
-	}
-	log.Println("Conectado ao PostgreSQL (donation-service).")
 
 	var sqsSvc *sqs.SQS
 	queueURL := os.Getenv("AWS_SQS_URL")
@@ -78,6 +84,11 @@ func (a *App) DonationHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if r.Method == http.MethodPost {
+		if a.DB == nil {
+			http.Error(w, `{"error":"Banco de dados indisponível"}`, http.StatusServiceUnavailable)
+			return
+		}
+
 		var d Donation
 		if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
 			http.Error(w, `{"error":"Payload inválido"}`, http.StatusBadRequest)
@@ -106,6 +117,11 @@ func (a *App) DonationHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
+		if a.DB == nil {
+			http.Error(w, `{"error":"Banco de dados indisponível"}`, http.StatusServiceUnavailable)
+			return
+		}
+
 		rows, err := a.DB.Query("SELECT id, ngo_id, amount, donor_name, status, created_at FROM donations ORDER BY id DESC")
 		if err != nil {
 			http.Error(w, `{"error":"Erro interno"}`, http.StatusInternalServerError)
