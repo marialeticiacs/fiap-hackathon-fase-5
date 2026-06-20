@@ -16,10 +16,6 @@ RUN pip install --upgrade pip && \
 # ---- Stage 2: runtime ----
 FROM python:3.11-slim AS runtime
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
-
 RUN pip install --no-cache-dir --upgrade \
     pip \
     setuptools \
@@ -37,6 +33,6 @@ USER appuser
 EXPOSE 8083
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:8083/health || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8083/health', timeout=3)"
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8083", "--workers", "2", "--timeout", "60", "app:app"]
