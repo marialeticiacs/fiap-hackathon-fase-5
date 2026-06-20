@@ -1,0 +1,10 @@
+donation-service
+*.exe
+*.test
+*.out
+vendor/
+.env
+.env.*
+.git
+.gitignore
+*.md
