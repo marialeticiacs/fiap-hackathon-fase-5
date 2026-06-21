@@ -12,6 +12,7 @@ module "eks" {
   source             = "../../modules/eks"
   project_name       = var.project_name
   environment        = var.environment
+  kubernetes_version = var.kubernetes_version
   private_subnet_ids = module.vpc.private_subnet_ids
   eks_nodes_sg_id    = aws_security_group.eks_nodes.id
 }
@@ -20,6 +21,7 @@ module "rds" {
   source             = "../../modules/rds"
   project_name       = var.project_name
   environment        = var.environment
+  db_engine_version  = var.db_engine_version
   private_subnet_ids = module.vpc.private_subnet_ids
   rds_sg_id          = aws_security_group.rds.id
 }

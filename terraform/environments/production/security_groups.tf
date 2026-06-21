@@ -5,7 +5,7 @@ resource "aws_security_group" "eks_nodes" {
   vpc_id      = module.vpc.vpc_id
 
   ingress {
-    description = "Comunicação interna entre nodes"
+    description = "Comunicacao interna entre nodes"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -13,7 +13,7 @@ resource "aws_security_group" "eks_nodes" {
   }
 
   egress {
-    description = "Saída irrestrita"
+    description = "Saida irrestrita"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

@@ -30,7 +30,7 @@ resource "aws_ssm_parameter" "db_password" {
 resource "aws_db_instance" "main" {
   identifier        = "${var.project_name}-${var.environment}-postgres"
   engine            = "postgres"
-  engine_version    = "16.2"
+  engine_version    = var.db_engine_version
   instance_class    = var.db_instance_class
   allocated_storage = 20
   storage_type      = "gp3"

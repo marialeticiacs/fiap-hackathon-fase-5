@@ -16,6 +16,19 @@ variable "project_name" {
   default     = "solidarytech"
 }
 
+variable "kubernetes_version" {
+  description = "Versao do Kubernetes para EKS"
+  type        = string
+  nullable    = true
+  default     = null
+}
+
+variable "db_engine_version" {
+  description = "Versao do engine Postgres para RDS"
+  type        = string
+  default     = "16"
+}
+
 variable "vpc_cidr" {
   description = "CIDR block da VPC"
   type        = string
