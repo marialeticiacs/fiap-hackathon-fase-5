@@ -59,6 +59,7 @@ jobs:
   build-ngo-service:
     name: Build & Scan — ngo-service (Python)
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -89,14 +90,55 @@ jobs:
 
       - name: Healthcheck smoke test
         run: |
+          set -euo pipefail
+          cleanup() {
+            docker logs test-ngo --tail 80 || true
+            docker stop test-ngo test-ngo-db >/dev/null 2>&1 || true
+            docker rm test-ngo test-ngo-db >/dev/null 2>&1 || true
+            docker network rm smoke-net >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          docker network create smoke-net
+
+          docker run -d --name test-ngo-db \
+            --network smoke-net \
+            -e POSTGRES_DB=ngo \
+            -e POSTGRES_USER=ngo \
+            -e POSTGRES_PASSWORD=ngo \
+            postgres:16-alpine
+
+          # Aguarda Postgres aceitar conexões (max 60s)
+          for i in {1..30}; do
+            if docker exec test-ngo-db pg_isready -U ngo -d ngo >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "Postgres não ficou pronto a tempo"
+              exit 1
+            fi
+            sleep 2
+          done
+
           docker run -d --name test-ngo \
-            -p 8081:8081 \
+            --network smoke-net \
             -e PORT=8081 \
-            -e DATABASE_URL=postgresql://fake:fake@localhost/fake \
+            -e DATABASE_URL=postgresql://ngo:ngo@test-ngo-db:5432/ngo \
             solidarytech/ngo-service:${{ github.sha }}
-          sleep 12
-          curl -f http://localhost:8081/health
-          docker stop test-ngo
+
+          # Aguarda health responder (max 60s), evitando step pendurado
+          for i in {1..30}; do
+            if docker run --rm --network smoke-net curlimages/curl:8.8.0 -fsS --max-time 3 http://test-ngo:8081/health >/dev/null; then
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "Healthcheck do ngo-service não respondeu a tempo"
+              exit 1
+            fi
+            sleep 2
+          done
+
+          docker run --rm --network smoke-net curlimages/curl:8.8.0 -fsS --max-time 5 http://test-ngo:8081/health
 
   # ─── volunteer-service: Python ────────────────────────────────
   build-volunteer-service:
