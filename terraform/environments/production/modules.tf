@@ -22,6 +22,7 @@ module "rds" {
   project_name       = var.project_name
   environment        = var.environment
   db_engine_version  = var.db_engine_version
+  db_deletion_protection = var.db_deletion_protection
   private_subnet_ids = module.vpc.private_subnet_ids
   rds_sg_id          = aws_security_group.rds.id
 }

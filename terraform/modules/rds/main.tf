@@ -43,10 +43,10 @@ resource "aws_db_instance" "main" {
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [var.rds_sg_id]
 
-  multi_az               = var.environment == "production" ? true : false
-  publicly_accessible    = false
-  deletion_protection    = var.environment == "production" ? true : false
-  skip_final_snapshot    = var.environment == "production" ? false : true
+  multi_az                  = var.environment == "production" ? true : false
+  publicly_accessible       = false
+  deletion_protection       = var.db_deletion_protection
+  skip_final_snapshot       = var.environment == "production" ? false : true
   final_snapshot_identifier = "${var.project_name}-${var.environment}-final-snapshot"
 
   backup_retention_period = 7

@@ -1,0 +1,33 @@
+# donation-service — HOT PATH: nunca deixar menos que 2 pods
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: donation-service-pdb
+  namespace: solidarytech
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: donation-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ngo-service-pdb
+  namespace: solidarytech
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: ngo-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: volunteer-service-pdb
+  namespace: solidarytech
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: volunteer-service

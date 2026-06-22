@@ -29,6 +29,12 @@ variable "db_engine_version" {
   default     = "16"
 }
 
+variable "db_deletion_protection" {
+  description = "Protecao contra exclusao do RDS"
+  type        = bool
+  default     = false
+}
+
 variable "vpc_cidr" {
   description = "CIDR block da VPC"
   type        = string

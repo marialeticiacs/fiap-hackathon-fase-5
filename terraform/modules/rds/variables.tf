@@ -24,6 +24,11 @@ variable "db_engine_version" {
 	default = "16"
 }
 
+variable "db_deletion_protection" {
+	type    = bool
+	default = false
+}
+
 variable "db_name" {
 	type    = string
 	default = "solidarytech"
